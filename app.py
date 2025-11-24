@@ -10,38 +10,59 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- THEME & CSS (Doraemon Style) ---
-# Blue: #0096E1, Red: #D80F28, Bell Gold: #F4D03F
+# --- THEME & CSS (Doraemon Style - Black Text Edition) ---
+# Blue: #0096E1, Red: #D80F28, Bell Gold: #F4D03F, Black: #000000
 doraemon_css = """
 <style>
+    /* 1. 設定整體背景與全域文字顏色 */
     .stApp {
         background-color: #E0F7FA;
+        color: #000000 !important; /* 強制主要文字為黑色 */
     }
+
+    /* 2. 設定所有標題 (H1-H3) 為黑色 */
     h1, h2, h3 {
-        color: #0096E1;
+        color: #000000 !important; /* 改為黑色 */
         font-family: 'Gen Jyuu Gothic', sans-serif;
     }
+    
+    /* 3. 確保 Markdown 一般文字、表格內容也是黑色 */
+    .stMarkdown p, div[data-testid="stTable"] {
+         color: #000000 !important;
+    }
+
+    /* 4. 按鈕樣式 (維持藍底白字以確保對比度) */
     .stButton>button {
         background-color: #0096E1;
-        color: white;
+        color: white !important; 
         border-radius: 20px;
         border: 2px solid #0078B5;
+        font-weight: bold;
     }
     .stButton>button:hover {
         background-color: #D80F28;
         border-color: #B00C20;
+        color: white !important;
     }
+
+    /* 5. 內容區塊樣式 */
     .css-1d391kg {
         background-color: #FFFFFF;
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    .metric-card {
-        background-color: white;
-        padding: 10px;
-        border-radius: 10px;
-        border-left: 5px solid #D80F28;
+    
+    /* 6. 側邊欄文字顏色調整 */
+    [data-testid="stSidebar"] {
+        color: #000000 !important;
+    }
+    [data-testid="stSidebar"] h1 {
+        color: #0096E1 !important; /* 側邊欄標題保留一點藍色點綴 */
+    }
+    /* 修正側邊欄 Radio 選項文字顏色 */
+    .stRadio label {
+        color: #000000 !important;
     }
 </style>
 """
@@ -121,8 +142,9 @@ elif menu == "🚪 每日一句任意門":
     if st.button("✨ 打開任意門 (隨機抽取)"):
         phrase = random.choice(phrases)
         st.markdown("---")
-        st.header(phrase['jp'])
-        st.subheader(phrase['reading'])
+        # 使用 HTML 標籤包裹以確保顏色正確應用
+        st.markdown(f"<h2>{phrase['jp']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3>{phrase['reading']}</h3>", unsafe_allow_html=True)
         st.info(f"中文意思: {phrase['cn']}")
         st.balloons()
 
@@ -156,6 +178,6 @@ elif menu == "🍞 單字記憶吐司 (Input)":
     if not st.session_state.vocab_df.empty:
         if st.button("❓ 抽考一個單字"):
             target = st.session_state.vocab_df.sample(1).iloc[0]
-            st.write(f"請問 **{target['中文']}** 的日文是什麼？")
+            st.markdown(f"請問 **{target['中文']}** 的日文是什麼？")
             with st.expander("點擊查看答案"):
-                st.write(f"**{target['日文']}** ({target['假名']})")
+                 st.markdown(f"**{target['日文']}** ({target['假名']})")
