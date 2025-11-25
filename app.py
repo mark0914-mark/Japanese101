@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import random
+from gtts import gTTS
+from io import BytesIO
 
 # Page Configuration
 st.set_page_config(
@@ -119,7 +121,14 @@ def show_50_sound_chart():
             for i, char in enumerate(row):
                 with cols[i]:
                     if char:
-                        st.button(char, key=f"h_{char}", use_container_width=True)
+                        if st.button(char, key=f"h_{char}", use_container_width=True):
+                            try:
+                                tts = gTTS(text=char, lang='ja')
+                                audio_bytes = BytesIO()
+                                tts.write_to_fp(audio_bytes)
+                                st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                            except Exception as e:
+                                st.error(f"Audio error: {e}")
     
     with tabs[1]:
         st.subheader("Katakana")
@@ -128,7 +137,14 @@ def show_50_sound_chart():
             for i, char in enumerate(row):
                 with cols[i]:
                     if char:
-                        st.button(char, key=f"k_{char}", use_container_width=True)
+                        if st.button(char, key=f"k_{char}", use_container_width=True):
+                            try:
+                                tts = gTTS(text=char, lang='ja')
+                                audio_bytes = BytesIO()
+                                tts.write_to_fp(audio_bytes)
+                                st.audio(audio_bytes, format='audio/mp3', autoplay=True)
+                            except Exception as e:
+                                st.error(f"Audio error: {e}")
 
 def show_anywhere_door():
     st.header("Anywhere Door (隨意門) 🚪")
