@@ -2,182 +2,226 @@ import streamlit as st
 import pandas as pd
 import random
 
-# --- CONFIGURATION ---
+# Page Configuration
 st.set_page_config(
-    page_title="多拉A夢日語百寶袋",
+    page_title="Antigravity - Learn Japanese",
     page_icon="🔔",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# --- THEME & CSS (Doraemon Style - Black Text Edition) ---
-# Blue: #0096E1, Red: #D80F28, Bell Gold: #F4D03F, Black: #000000
-doraemon_css = """
-<style>
-    /* 1. 設定整體背景與全域文字顏色 */
-    .stApp {
-        background-color: #E0F7FA;
-        color: #000000 !important; /* 強制主要文字為黑色 */
-    }
-
-    /* 2. 設定所有標題 (H1-H3) 為黑色 */
-    h1, h2, h3 {
-        color: #000000 !important; /* 改為黑色 */
-        font-family: 'Gen Jyuu Gothic', sans-serif;
+# Custom CSS for Doraemon Theme
+st.markdown("""
+    <style>
+    /* Doraemon Colors */
+    :root {
+        --dora-blue: #0096E1;
+        --dora-red: #D80F28;
+        --dora-white: #FFFFFF;
+        --dora-bell: #F1C40F;
     }
     
-    /* 3. 確保 Markdown 一般文字、表格內容也是黑色 */
-    .stMarkdown p, div[data-testid="stTable"] {
-         color: #000000 !important;
+    .stApp {
+        background-color: #F0F8FF;
     }
-
-    /* 4. 按鈕樣式 (維持藍底白字以確保對比度) */
-    .stButton>button {
-        background-color: #0096E1;
-        color: white !important; 
-        border-radius: 20px;
-        border: 2px solid #0078B5;
-        font-weight: bold;
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: var(--dora-blue);
     }
-    .stButton>button:hover {
-        background-color: #D80F28;
-        border-color: #B00C20;
+    [data-testid="stSidebar"] * {
         color: white !important;
     }
-
-    /* 5. 內容區塊樣式 */
-    .css-1d391kg {
-        background-color: #FFFFFF;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    /* Headers */
+    h1, h2, h3 {
+        color: var(--dora-blue);
+        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     }
     
-    /* 6. 側邊欄文字顏色調整 */
-    [data-testid="stSidebar"] {
-        color: #000000 !important;
+    /* Custom Buttons */
+    .stButton>button {
+        background-color: var(--dora-red);
+        color: white;
+        border-radius: 20px;
+        border: 2px solid white;
     }
-    [data-testid="stSidebar"] h1 {
-        color: #0096E1 !important; /* 側邊欄標題保留一點藍色點綴 */
+    .stButton>button:hover {
+        background-color: #ff4b4b;
+        border-color: var(--dora-bell);
     }
-    /* 修正側邊欄 Radio 選項文字顏色 */
-    .stRadio label {
-        color: #000000 !important;
-    }
-</style>
-"""
-st.markdown(doraemon_css, unsafe_allow_html=True)
-
-# --- INITIALIZE DATA (SESSION STATE) ---
-if 'vocab_df' not in st.session_state:
-    # Initial Seed Data
-    data = {
-        '日文': ['猫', '銅鑼焼き', '竹蜻蜓', '任意門'],
-        '假名': ['ねこ', 'どらやき', 'たけこぷたー', 'どこでもどあ'],
-        '中文': ['貓', '銅鑼燒', '竹蜻蜓', '任意門']
-    }
-    st.session_state.vocab_df = pd.DataFrame(data)
-
-# --- HELPER FUNCTIONS ---
-def get_hiragana_chart():
-    # Simplified rows for demo
-    return pd.DataFrame([
-        ['あ (a)', 'い (i)', 'う (u)', 'え (e)', 'お (o)'],
-        ['か (ka)', 'き (ki)', 'く (ku)', 'け (ke)', 'こ (ko)'],
-        ['さ (sa)', 'し (shi)', 'す (su)', 'せ (se)', 'そ (so)'],
-        ['た (ta)', 'ち (chi)', 'つ (tsu)', 'て (te)', 'と (to)'],
-        ['な (na)', 'に (ni)', 'ぬ (nu)', 'ね (ne)', 'の (no)'],
-    ])
-
-def get_katakana_chart():
-    return pd.DataFrame([
-        ['ア (a)', 'イ (i)', 'ウ (u)', 'エ (e)', 'オ (o)'],
-        ['カ (ka)', 'キ (ki)', 'ク (ku)', 'ケ (ke)', 'コ (ko)'],
-        ['サ (sa)', 'シ (shi)', 'ス (su)', 'セ (se)', 'ソ (so)'],
-    ])
-
-# --- SIDEBAR NAVIGATION ---
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/en/c/c8/Doraemon_volume_1_cover.jpg", width=100)
-st.sidebar.title("🔔 百寶袋選單")
-menu = st.sidebar.radio(
-    "選擇道具 functionality:",
-    ["🏠 主頁面", "📓 五十音記憶吐司", "🚪 每日一句任意門", "🍞 單字記憶吐司 (Input)"]
-)
-
-# --- PAGE LOGIC ---
-
-if menu == "🏠 主頁面":
-    st.title("🔔 多拉A夢日語百寶袋")
-    st.markdown("### 歡迎來到 Antigravity 日語教室！")
-    st.markdown("這是一個專門為了幫助你記憶日語而開發的應用程式。請從左側選單選擇你要使用的道具。")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info(f"📚 目前累積單字: {len(st.session_state.vocab_df)} 個")
-    with col2:
-        st.success("⚡ 學習狀態: 充滿活力")
-        
-    st.image("https://i.imgur.com/3v1R5tZ.png", caption="一起努力學習吧！", use_column_width=True)
+    </style>
+""", unsafe_allow_html=True)
 
-elif menu == "📓 五十音記憶吐司":
-    st.title("📓 五十音圖表")
-    tab1, tab2 = st.tabs(["平假名 (Hiragana)", "片假名 (Katakana)"])
-    
-    with tab1:
-        st.table(get_hiragana_chart())
-    with tab2:
-        st.table(get_katakana_chart())
+# Session State Initialization
+if 'vocab_list' not in st.session_state:
+    st.session_state['vocab_list'] = []
 
-elif menu == "🚪 每日一句任意門":
-    st.title("🚪 任意門：每日短句")
+def main():
+    st.title("🔔 Antigravity (Japanese Learning)")
+
+    # Sidebar Navigation
+    st.sidebar.image("https://upload.wikimedia.org/wikipedia/en/b/bd/Doraemon_character.png", width=100) # Placeholder or remove if not allowed
+    st.sidebar.title("Gadget Menu 🚪")
     
-    phrases = [
-        {"jp": "こんにちは", "reading": "Konnichiwa", "cn": "你好"},
-        {"jp": "ありがとう", "reading": "Arigatou", "cn": "謝謝"},
-        {"jp": "頑張って！", "reading": "Ganbatte", "cn": "加油！"},
-        {"jp": "お腹すいた", "reading": "Onaka suita", "cn": "肚子餓了"},
-        {"jp": "何をしているの？", "reading": "Nani o shite iru no?", "cn": "你在做什麼？"}
+    menu = st.sidebar.radio(
+        "Choose a Gadget:",
+        ["50-Sound Chart", "Anywhere Door", "Memory Bread", "Quiz Mode"]
+    )
+
+    if menu == "50-Sound Chart":
+        show_50_sound_chart()
+    elif menu == "Anywhere Door":
+        show_anywhere_door()
+    elif menu == "Memory Bread":
+        show_memory_bread()
+    elif menu == "Quiz Mode":
+        show_quiz_mode()
+
+def show_50_sound_chart():
+    st.header("50-Sound Chart (五十音圖)")
+    
+    tabs = st.tabs(["Hiragana (平假名)", "Katakana (片假名)"])
+    
+    hiragana = [
+        ['あ', 'い', 'う', 'え', 'お'],
+        ['か', 'き', 'く', 'け', 'こ'],
+        ['さ', 'し', 'す', 'せ', 'そ'],
+        ['た', 'ち', 'つ', 'て', 'と'],
+        ['な', 'に', 'ぬ', 'ね', 'の'],
+        ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+        ['ま', 'み', 'む', 'め', 'も'],
+        ['や', '', 'ゆ', '', 'よ'],
+        ['ら', 'り', 'る', 'れ', 'ろ'],
+        ['わ', '', '', '', 'を'],
+        ['ん', '', '', '', '']
     ]
     
-    if st.button("✨ 打開任意門 (隨機抽取)"):
+    katakana = [
+        ['ア', 'イ', 'ウ', 'エ', 'オ'],
+        ['カ', 'キ', 'ク', 'ケ', 'コ'],
+        ['サ', 'シ', 'ス', 'セ', 'ソ'],
+        ['タ', 'チ', 'ツ', 'テ', 'ト'],
+        ['ナ', 'ニ', 'ヌ', 'ネ', 'ノ'],
+        ['ハ', 'ヒ', 'フ', 'ヘ', 'ホ'],
+        ['マ', 'ミ', 'ム', 'メ', 'モ'],
+        ['ヤ', '', 'ユ', '', 'ヨ'],
+        ['ラ', 'リ', 'ル', 'レ', 'ロ'],
+        ['ワ', '', '', '', 'ヲ'],
+        ['ン', '', '', '', '']
+    ]
+    
+    with tabs[0]:
+        st.subheader("Hiragana")
+        for row in hiragana:
+            cols = st.columns(5)
+            for i, char in enumerate(row):
+                with cols[i]:
+                    if char:
+                        st.button(char, key=f"h_{char}", use_container_width=True)
+    
+    with tabs[1]:
+        st.subheader("Katakana")
+        for row in katakana:
+            cols = st.columns(5)
+            for i, char in enumerate(row):
+                with cols[i]:
+                    if char:
+                        st.button(char, key=f"k_{char}", use_container_width=True)
+
+def show_anywhere_door():
+    st.header("Anywhere Door (隨意門) 🚪")
+    
+    phrases = [
+        {"jp": "こんにちは", "reading": "Konnichiwa", "meaning": "你好 (Hello)"},
+        {"jp": "ありがとう", "reading": "Arigatou", "meaning": "謝謝 (Thank you)"},
+        {"jp": "さようなら", "reading": "Sayounara", "meaning": "再見 (Goodbye)"},
+        {"jp": "おはよう", "reading": "Ohayou", "meaning": "早安 (Good morning)"},
+        {"jp": "こんばんは", "reading": "Konbanwa", "meaning": "晚安 (Good evening)"},
+        {"jp": "すみません", "reading": "Sumimasen", "meaning": "不好意思 (Excuse me)"},
+        {"jp": "お元気ですか", "reading": "Ogenki desu ka", "meaning": "你好嗎? (How are you?)"},
+        {"jp": "いただきます", "reading": "Itadakimasu", "meaning": "我要開動了 (Let's eat)"},
+    ]
+    
+    if st.button("Open the Door! 🚪", use_container_width=True):
         phrase = random.choice(phrases)
-        st.markdown("---")
-        # 使用 HTML 標籤包裹以確保顏色正確應用
-        st.markdown(f"<h2>{phrase['jp']}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3>{phrase['reading']}</h3>", unsafe_allow_html=True)
-        st.info(f"中文意思: {phrase['cn']}")
-        st.balloons()
+        st.success(f"**{phrase['jp']}**")
+        st.info(f"Reading: {phrase['reading']}")
+        st.warning(f"Meaning: {phrase['meaning']}")
+    else:
+        st.info("Click the button to learn a new phrase!")
 
-elif menu == "🍞 單字記憶吐司 (Input)":
-    st.title("🍞 記憶吐司：單字庫")
-    st.markdown("在這裡吃下（輸入）新的單字，才不會忘記喔！")
-
+def show_memory_bread():
+    st.header("Memory Bread (記憶麵包) 🍞")
+    
     # Input Form
     with st.form("vocab_form", clear_on_submit=True):
         col1, col2, col3 = st.columns(3)
-        new_jp = col1.text_input("日文 (例如: 猫)")
-        new_kana = col2.text_input("假名 (例如: ねこ)")
-        new_cn = col3.text_input("中文 (例如: 貓)")
+        with col1:
+            word = st.text_input("Word (日文)")
+        with col2:
+            reading = st.text_input("Reading (讀音)")
+        with col3:
+            meaning = st.text_input("Meaning (意思)")
+            
+        submitted = st.form_submit_button("Eat Bread! (Add Word)")
         
-        submitted = st.form_submit_button("📥 印在吐司上 (儲存)")
-        
-        if submitted and new_jp and new_cn:
-            new_entry = pd.DataFrame([{'日文': new_jp, '假名': new_kana, '中文': new_cn}])
-            st.session_state.vocab_df = pd.concat([st.session_state.vocab_df, new_entry], ignore_index=True)
-            st.success(f"成功儲存單字: {new_jp}")
+        if submitted and word and meaning:
+            st.session_state['vocab_list'].append({
+                "Word": word,
+                "Reading": reading,
+                "Meaning": meaning
+            })
+            st.success(f"Added: {word}")
+        elif submitted:
+            st.error("Please fill in at least Word and Meaning!")
 
-    st.markdown("---")
-    st.subheader("📖 你的單字筆記本")
+    # Display List
+    if st.session_state['vocab_list']:
+        st.subheader("Your Vocabulary List")
+        df = pd.DataFrame(st.session_state['vocab_list'])
+        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+        
+        # Update session state if edited (optional, but good for UX)
+        # Note: st.data_editor returns the edited dataframe. 
+        # Syncing back to list is a bit complex with simple lists, 
+        # so for this simple app, we might just display it or use the return value if needed later.
+        # For now, let's just display. To make it truly editable and persistent in session, 
+        # we'd need to convert df back to list.
+        
+        if not df.equals(edited_df):
+             st.session_state['vocab_list'] = edited_df.to_dict('records')
+    else:
+        st.info("No words yet. Eat some bread to remember words!")
+
+def show_quiz_mode():
+    st.header("Quiz Mode 🎯")
     
-    # Display Dataframe
-    st.dataframe(st.session_state.vocab_df, use_container_width=True)
+    if not st.session_state['vocab_list']:
+        st.warning("You haven't eaten any Memory Bread yet! Go add some words first.")
+        return
+
+    if 'current_quiz' not in st.session_state:
+        st.session_state['current_quiz'] = random.choice(st.session_state['vocab_list'])
+        st.session_state['quiz_revealed'] = False
+
+    quiz = st.session_state['current_quiz']
     
-    # Simple Quiz Mechanism
-    st.markdown("---")
-    st.subheader("🧠 隨堂小考")
-    if not st.session_state.vocab_df.empty:
-        if st.button("❓ 抽考一個單字"):
-            target = st.session_state.vocab_df.sample(1).iloc[0]
-            st.markdown(f"請問 **{target['中文']}** 的日文是什麼？")
-            with st.expander("點擊查看答案"):
-                 st.markdown(f"**{target['日文']}** ({target['假名']})")
+    st.markdown(f"### What is the meaning of: **{quiz['Word']}**?")
+    
+    if st.session_state['quiz_revealed']:
+        st.info(f"Reading: {quiz['Reading']}")
+        st.success(f"Meaning: {quiz['Meaning']}")
+        
+        if st.button("Next Question ➡️"):
+            st.session_state['current_quiz'] = random.choice(st.session_state['vocab_list'])
+            st.session_state['quiz_revealed'] = False
+            st.rerun()
+    else:
+        if st.button("Reveal Answer 👁️"):
+            st.session_state['quiz_revealed'] = True
+            st.rerun()
+
+if __name__ == "__main__":
+    main()
